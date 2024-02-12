@@ -1,12 +1,13 @@
 package me.cominixo.openlibrenfc;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
+import static android.app.PendingIntent.FLAG_IMMUTABLE;
+import static me.cominixo.openlibrenfc.LibreNfcUtils.bytesToHexStr;
+import static me.cominixo.openlibrenfc.LibreNfcUtils.hexStrToBytes;
+import static me.cominixo.openlibrenfc.LibreNfcUtils.sendCmd;
 
 import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.nfc.NfcAdapter;
@@ -14,27 +15,24 @@ import android.nfc.Tag;
 import android.nfc.tech.NfcV;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+
 import com.example.openlibrenfc.R;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-
-import static me.cominixo.openlibrenfc.LibreNfcUtils.bytesToHexStr;
-import static me.cominixo.openlibrenfc.LibreNfcUtils.hexStrToBytes;
-import static me.cominixo.openlibrenfc.LibreNfcUtils.sendCmd;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -115,20 +113,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private File getFile() {
-        // External storage path (SD card)
-        File sdcard = Environment.getExternalStorageDirectory();
+// Get external cache directory
+        File externalCacheDir = ContextCompat.getExternalCacheDirs(this)[0];
 
-        File dir = new File(sdcard.getAbsolutePath() + "/openlibrenfc/");
-
+        File dir = new File(externalCacheDir, "openlibrenfc");
         dir.mkdirs();
 
         File file = new File(dir, "memory_dump.txt");
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            ActivityCompat.requestPermissions(MainActivity.this, new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE}, 100);
-        }
-
         return file;
+
     }
 
     @Override
@@ -165,7 +159,7 @@ public class MainActivity extends AppCompatActivity {
 
         Intent nfcIntent = new Intent(this, getClass());
         nfcIntent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, nfcIntent, 0);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, nfcIntent, FLAG_IMMUTABLE);
         IntentFilter[] intentFiltersArray = new IntentFilter[]{};
         String[][] techList = new String[][]{{android.nfc.tech.Ndef.class.getName()}, {android.nfc.tech.NdefFormatable.class.getName()}};
         NfcAdapter nfcAdpt = NfcAdapter.getDefaultAdapter(this);
@@ -175,6 +169,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
         Tag nfcTag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
 
 
@@ -203,7 +198,7 @@ public class MainActivity extends AppCompatActivity {
 
             // Remove zeros
             receivedId = Arrays.copyOfRange(receivedId, 1, receivedId.length);
-            receivedUid = Arrays.copyOfRange(receivedUid, 2, receivedUid.length-2);
+            receivedUid = Arrays.copyOfRange(receivedUid, 2, receivedUid.length - 2);
 
             byte[] typeIdentifier = Arrays.copyOfRange(receivedId, 0, 3);
 
@@ -242,7 +237,7 @@ public class MainActivity extends AppCompatActivity {
 
                     }
 
-                    int out = LibreNfcUtils.crc16(Arrays.copyOfRange(memoryInt, 26, 294+26));
+                    int out = LibreNfcUtils.crc16(Arrays.copyOfRange(memoryInt, 26, 294 + 26));
 
 
                     byte[] crc = ByteBuffer.allocate(4).putInt(out).array();
@@ -265,15 +260,15 @@ public class MainActivity extends AppCompatActivity {
 
                 case ACTIVATE:
                     byte[] activateCmd = new byte[]
-                    {
-                        (byte) 0x02,
-                        (byte) 0xA0,
-                        (byte) 0x07,
-                        (byte) 0XC2,
-                        (byte) 0xAD,
-                        (byte) 0x75,
-                        (byte) 0x21
-                    };
+                            {
+                                    (byte) 0x02,
+                                    (byte) 0xA0,
+                                    (byte) 0x07,
+                                    (byte) 0XC2,
+                                    (byte) 0xAD,
+                                    (byte) 0x75,
+                                    (byte) 0x21
+                            };
 
                     sendCmd(handle, activateCmd);
                     break;
@@ -291,8 +286,7 @@ public class MainActivity extends AppCompatActivity {
                             text.append('\n');
                         }
                         br.close();
-                    }
-                    catch (IOException e) {
+                    } catch (IOException e) {
                         vibrate();
 
                         Toast.makeText(this, "Couldn't read the memory dump, is the file there?", Toast.LENGTH_SHORT).show();
@@ -367,17 +361,17 @@ public class MainActivity extends AppCompatActivity {
                 index += 16;
 
             float temp = (256 * memory[index * 6 + 32] + memory[index * 6 + 31]) & 0x3fff;
-            
+
             // https://type1tennis.blogspot.com/2017/09/libre-other-bytes-well-some-of-them-at.html
-            double tempCelsius = Math.round((temp*0.0027689+9.53)*100.0)/100.0;
+            double tempCelsius = Math.round((temp * 0.0027689 + 9.53) * 100.0) / 100.0;
 
             idView.setText(getString(R.string.libreid, id));
             uidView.setText(getString(R.string.uid, uid));
             typeView.setText(getString(R.string.type, libreType));
-            ageView.setText(getString(R.string.age, age/1440));
+            ageView.setText(getString(R.string.age, age / 1440));
             tempView.setText(getString(R.string.temp, tempCelsius));
-            regionView.setText( getString(R.string.region, region));
-            statusView.setText( getString(R.string.status, status, statusString));
+            regionView.setText(getString(R.string.region, region));
+            statusView.setText(getString(R.string.status, status, statusString));
 
             Toast.makeText(this, "Scanned Successfully", Toast.LENGTH_SHORT).show();
 
