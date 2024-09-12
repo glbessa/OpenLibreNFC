@@ -1,25 +1,10 @@
 package me.cominixo.openlibrenfc;
 
-class LibreConstants {
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
-    static final byte[] LIBRE1_NEW_ID = {
-            (byte) 0xA2,
-            (byte) 0x08,
-            (byte) 0x00
-    };
-
-    static final byte[] LIBRE1_OLD_ID = {
-            (byte) 0xE9,
-            (byte) 0x00,
-            (byte) 0x00
-    };
-
-    static final byte[] LIBRE1_JAPAN_ID = {
-            (byte) 0x00,
-            (byte) 0x00,
-            (byte) 0x04
-    };
-
+public class LibreConstants {
     static final int MEMORY_SIZE = 360;
 
     // Password to unlock/lock the chip
@@ -30,4 +15,21 @@ class LibreConstants {
             (byte) 33
     };
 
+    static final byte[] OK_RESPONSE = {
+            (byte) 0x00
+    };
+
+    static final byte[] ERROR_RESPONSE = {
+            (byte) 0x01,
+            (byte) 0x01
+    };
+
+    static final HashMap<Integer, String> statuses = new HashMap<>();
+    static {
+        statuses.put(1, "New (Not activated)");
+        statuses.put(2, "In warmup");
+        statuses.put(3, "Activated");
+        statuses.put(5, "Expired");
+        statuses.put(6, "Error");
+    }
 }

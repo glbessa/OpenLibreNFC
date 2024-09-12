@@ -7,137 +7,101 @@
     tools:context="me.cominixo.openlibrenfc.MainActivity">
 
     <TextView
-        android:id="@+id/libreid"
+        android:id="@+id/selected_action"
         android:layout_width="397dp"
         android:layout_height="34dp"
-        android:layout_marginStart="10dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginTop="164dp"
-        android:text="@string/libreid"
-        app:layout_constraintEnd_toEndOf="@+id/uid"
-        app:layout_constraintHorizontal_bias="1.0"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="491dp"
+        android:layout_marginBottom="206dp"
+        android:text="@string/selected_action"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0" />
 
     <TextView
-        android:id="@+id/age"
-        android:layout_width="397dp"
-        android:layout_height="34dp"
-        android:layout_marginStart="10dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginTop="228dp"
-        android:text="@string/age"
-        app:layout_constraintEnd_toEndOf="@+id/type"
-        app:layout_constraintHorizontal_bias="1.0"
+        android:id="@+id/uid"
+        android:layout_width="350dp"
+        android:layout_height="70dp"
+        android:text="@string/uid"
+        app:layout_constraintBottom_toTopOf="@+id/age"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/libreid" />
 
     <TextView
         android:id="@+id/region"
-        android:layout_width="397dp"
-        android:layout_height="34dp"
-        android:layout_marginStart="10dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginTop="328dp"
+        android:layout_width="350dp"
+        android:layout_height="70dp"
+        android:layout_marginTop="1dp"
+        android:layout_marginBottom="1dp"
         android:text="@string/region"
-        app:layout_constraintEnd_toEndOf="@+id/status"
-        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintBottom_toTopOf="@+id/status"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/type" />
 
     <TextView
         android:id="@+id/type"
-        android:layout_width="397dp"
-        android:layout_height="34dp"
-        android:layout_marginStart="10dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginTop="296dp"
+        android:layout_width="350dp"
+        android:layout_height="70dp"
+        android:layout_marginBottom="1dp"
         android:text="@string/type"
-        app:layout_constraintEnd_toEndOf="@+id/region"
-        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintBottom_toTopOf="@+id/region"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/temp" />
+
+    <TextView
+        android:id="@+id/temp"
+        android:layout_width="350dp"
+        android:layout_height="70dp"
+        android:layout_marginBottom="1dp"
+        android:text="@string/temp"
+        app:layout_constraintBottom_toTopOf="@+id/type"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/age" />
+
+    <TextView
+        android:id="@+id/age"
+        android:layout_width="350dp"
+        android:layout_height="70dp"
+        android:layout_marginBottom="1dp"
+        android:text="@string/age"
+        app:layout_constraintBottom_toTopOf="@+id/temp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/uid" />
+
+    <TextView
+        android:id="@+id/libreid"
+        android:layout_width="350dp"
+        android:layout_height="70dp"
+        android:text="@string/libreid"
+        app:layout_constraintBottom_toTopOf="@+id/uid"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/status"
-        android:layout_width="397dp"
-        android:layout_height="34dp"
-        android:layout_marginStart="4dp"
-        android:layout_marginLeft="4dp"
-        android:layout_marginTop="360dp"
+        android:layout_width="350dp"
+        android:layout_height="70dp"
         android:text="@string/status"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/uid"
-        android:layout_width="397dp"
-        android:layout_height="34dp"
-        android:layout_marginStart="10dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginTop="196dp"
-        android:text="@string/uid"
-        app:layout_constraintEnd_toEndOf="@+id/age"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-
-    <TextView
-        android:id="@+id/selected_action"
-        android:layout_width="397dp"
-        android:layout_height="34dp"
-        android:layout_marginStart="7dp"
-        android:layout_marginLeft="7dp"
-        android:layout_marginTop="491dp"
-        android:layout_marginBottom="206dp"
-        android:text="@string/selected_action"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/temp"
-        android:layout_width="397dp"
-        android:layout_height="34dp"
-        android:layout_marginTop="262dp"
-        android:text="@string/temp"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:layout_editor_absoluteX="4dp" />
-
-    <Button
-        android:id="@+id/scan"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="160dp"
-        android:layout_marginLeft="160dp"
-        android:layout_marginTop="100dp"
-        android:layout_marginEnd="160dp"
-        android:layout_marginRight="160dp"
-        android:layout_marginBottom="585dp"
-        android:onClick="onScanClick"
-        android:text="@string/scan"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/region" />
 
-    <Button
-        android:id="@+id/reset_age"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="40dp"
-        android:layout_marginLeft="40dp"
-        android:layout_marginTop="100dp"
-        android:layout_marginEnd="283dp"
-        android:layout_marginRight="283dp"
-        android:layout_marginBottom="585dp"
-        android:onClick="onResetAgeClick"
-        android:text="@string/reset_age"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
 
     <Button
         android:id="@+id/dump_memory"
@@ -168,20 +132,48 @@
         app:layout_constraintStart_toStartOf="parent" />
 
     <Button
+        android:id="@+id/reset_age"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:onClick="onResetAgeClick"
+        android:text="@string/reset_age"
+        app:layout_constraintEnd_toStartOf="@+id/scan"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/selected_action" />
+
+    <Button
         android:id="@+id/start"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="283dp"
-        android:layout_marginLeft="283dp"
-        android:layout_marginTop="100dp"
-        android:layout_marginEnd="40dp"
-        android:layout_marginRight="40dp"
-        android:layout_marginBottom="585dp"
+        android:layout_marginTop="10dp"
         android:onClick="onActivateClick"
         android:text="@string/start"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/scan"
+        app:layout_constraintTop_toBottomOf="@+id/selected_action" />
+
+    <Button
+        android:id="@+id/scan"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:onClick="onScanClick"
+        android:text="@string/scan"
+        app:layout_constraintEnd_toStartOf="@+id/start"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/reset_age"
+        app:layout_constraintTop_toBottomOf="@+id/selected_action" />
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/group"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:constraint_referenced_ids="status,region,type,temp,age,uid,libreid"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

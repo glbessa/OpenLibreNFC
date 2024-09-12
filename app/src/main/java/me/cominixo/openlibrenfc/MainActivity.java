@@ -1,10 +1,12 @@
 package me.cominixo.openlibrenfc;
 
 import static android.app.PendingIntent.FLAG_IMMUTABLE;
+import static androidx.core.content.ContextCompat.getSystemService;
 import static me.cominixo.openlibrenfc.LibreNfcUtils.bytesToHexStr;
 import static me.cominixo.openlibrenfc.LibreNfcUtils.hexStrToBytes;
 import static me.cominixo.openlibrenfc.LibreNfcUtils.sendCmd;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -12,11 +14,15 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.nfc.NfcAdapter;
 import android.nfc.Tag;
+import android.nfc.tech.Ndef;
+import android.nfc.tech.NfcA;
 import android.nfc.tech.NfcV;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
+import android.provider.Settings;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -33,12 +39,16 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
-
     enum SelectedAction {
         SCAN, RESET_AGE, ACTIVATE, LOAD_DUMP
     }
+
+    private NfcAdapter nfcAdapter;
+    private PendingIntent pendingIntent;
+    private IntentFilter[] intentFilters;
 
     private SelectedAction selectedAction = SelectedAction.SCAN;
 
@@ -52,32 +62,103 @@ public class MainActivity extends AppCompatActivity {
 
     private TextView selectedActionView;
 
-    private byte[] memory = new byte[360];
+    private final OpenLibre libre = new OpenLibre();
 
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        this.nfcAdapter = NfcAdapter.getDefaultAdapter(this);
+        this.pendingIntent = PendingIntent.getActivity(
+                this,
+                0,
+                new Intent(this, this.getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
+                PendingIntent.FLAG_MUTABLE
+        );
+        this.intentFilters = new IntentFilter[] {
+                new IntentFilter(NfcAdapter.ACTION_TAG_DISCOVERED),
+                new IntentFilter(NfcAdapter.ACTION_TECH_DISCOVERED)
+        };
+        try {
+            this.intentFilters[1].addDataType("*/*");
+        } catch (IntentFilter.MalformedMimeTypeException e) {
+            throw new RuntimeException(e);
+        }
+
+        idView = findViewById(R.id.libreid);
+        uidView = findViewById(R.id.uid);
+        typeView = findViewById(R.id.type);
+        ageView = findViewById(R.id.age);
+        tempView = findViewById(R.id.temp);
+        regionView = findViewById(R.id.region);
+        statusView = findViewById(R.id.status);
+        selectedActionView = findViewById(R.id.selected_action);
+
+        selectedActionView.setText(getString(R.string.selected_action, getString(R.string.scan)));
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        this.nfcAdapter.enableForegroundDispatch(this, this.pendingIntent, this.intentFilters, null);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        this.nfcAdapter.disableForegroundDispatch(this);
+    }
+
+    @Override
+    public void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+
+        Tag nfcTag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG, Tag.class);
+        if (nfcTag == null)
+            return;
+
+        handleTag(nfcTag);
+    }
+
+    private void handleTag(Tag nfcTag) {
+        NfcV handler = NfcV.get(nfcTag);
+        try {
+            this.libre.update(handler);
+        } catch (Exception exception) {
+            Toast.makeText(this, exception.getMessage(), Toast.LENGTH_LONG).show();
+        } finally {
+            this.showTagInfo();
+        }
+    }
+
+    public void showTagInfo() {
+        idView.setText(getString(R.string.libreid, this.libre.id));
+        uidView.setText(getString(R.string.uid, this.libre.uid));
+        typeView.setText(getString(R.string.type, this.libre.type));
+        ageView.setText(getString(R.string.age, this.libre.age));
+        tempView.setText(getString(R.string.temp, this.libre.temperature));
+        regionView.setText(getString(R.string.region, this.libre.region));
+        statusView.setText(getString(R.string.status, this.libre.status));
+    }
 
     public void onScanClick(View view) {
-
         selectedAction = SelectedAction.SCAN;
         selectedActionView.setText(getString(R.string.selected_action, getString(R.string.scan)));
-
     }
 
     public void onResetAgeClick(View view) {
-
         selectedAction = SelectedAction.RESET_AGE;
         selectedActionView.setText(getString(R.string.selected_action, getString(R.string.reset_age)));
-
     }
 
     public void onActivateClick(View view) {
-
         selectedAction = SelectedAction.ACTIVATE;
         selectedActionView.setText(getString(R.string.selected_action, getString(R.string.start)));
-
     }
 
     public void dumpMemory(View view) {
-
+        /*
         File file = getFile();
 
         FileOutputStream os;
@@ -97,7 +178,7 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "Couldn't dump memory", Toast.LENGTH_SHORT).show();
             e.printStackTrace();
         }
-
+        */
     }
 
     public void loadMemory(View view) {
@@ -113,7 +194,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private File getFile() {
-// Get external cache directory
         File externalCacheDir = ContextCompat.getExternalCacheDirs(this)[0];
 
         File dir = new File(externalCacheDir, "openlibrenfc");
@@ -124,271 +204,4 @@ public class MainActivity extends AppCompatActivity {
         return file;
 
     }
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        LibreNfcUtils.updateActivity(this);
-
-        setContentView(R.layout.activity_main);
-
-        idView = findViewById(R.id.libreid);
-        uidView = findViewById(R.id.uid);
-        typeView = findViewById(R.id.type);
-        ageView = findViewById(R.id.age);
-        tempView = findViewById(R.id.temp);
-        regionView = findViewById(R.id.region);
-        statusView = findViewById(R.id.status);
-        selectedActionView = findViewById(R.id.selected_action);
-
-        selectedActionView.setText(getString(R.string.selected_action, getString(R.string.scan)));
-
-        idView.setText("");
-        uidView.setText("");
-        typeView.setText("");
-        ageView.setText("");
-        tempView.setText("");
-        regionView.setText("");
-        statusView.setText("");
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-        Intent nfcIntent = new Intent(this, getClass());
-        nfcIntent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, nfcIntent, FLAG_IMMUTABLE);
-        IntentFilter[] intentFiltersArray = new IntentFilter[]{};
-        String[][] techList = new String[][]{{android.nfc.tech.Ndef.class.getName()}, {android.nfc.tech.NdefFormatable.class.getName()}};
-        NfcAdapter nfcAdpt = NfcAdapter.getDefaultAdapter(this);
-        nfcAdpt.enableForegroundDispatch(this, pendingIntent, intentFiltersArray, techList);
-
-    }
-
-    @Override
-    public void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
-        Tag nfcTag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
-
-
-        NfcV handle = NfcV.get(nfcTag);
-
-
-        byte[] getIdCmd = {
-                (byte) 0x02, // Flag for un-addressed communication
-                (byte) 0xa1, // Get Patch Info
-                (byte) 0x07  // Vendor Identifier
-        };
-
-        byte[] getUidCmd = {
-                (byte) 0x26,
-                (byte) 0x01,
-                (byte) 0x00
-        };
-
-
-        byte[] receivedId = sendCmd(handle, getIdCmd);
-
-        byte[] receivedUid = sendCmd(handle, getUidCmd);
-
-
-        if (receivedId.length != 0 && receivedUid.length != 0) {
-
-            // Remove zeros
-            receivedId = Arrays.copyOfRange(receivedId, 1, receivedId.length);
-            receivedUid = Arrays.copyOfRange(receivedUid, 2, receivedUid.length - 2);
-
-            byte[] typeIdentifier = Arrays.copyOfRange(receivedId, 0, 3);
-
-            String libreType;
-
-            if (Arrays.equals(typeIdentifier, LibreConstants.LIBRE1_NEW_ID)) {
-                libreType = "Libre 1 New";
-            } else if (Arrays.equals(typeIdentifier, LibreConstants.LIBRE1_OLD_ID)) {
-                libreType = "Libre 1 Old";
-            } else if (Arrays.equals(typeIdentifier, LibreConstants.LIBRE1_JAPAN_ID)) {
-                libreType = "Libre 1 Japan";
-            } else {
-                libreType = "Unsupported";
-            }
-
-            memory = LibreNfcUtils.readMemory(handle);
-
-
-            if (memory.length == 0) {
-                return;
-            }
-
-            switch (selectedAction) {
-
-                case RESET_AGE:
-                    memory[317] = 0;
-                    memory[316] = 0;
-
-                    // Convert to int array first
-
-                    int[] memoryInt = new int[memory.length];
-
-                    for (int i = 0; i < memory.length; i++) {
-
-                        memoryInt[i] = memory[i] & 0xff;
-
-                    }
-
-                    int out = LibreNfcUtils.crc16(Arrays.copyOfRange(memoryInt, 26, 294 + 26));
-
-
-                    byte[] crc = ByteBuffer.allocate(4).putInt(out).array();
-
-                    memory[24] = crc[3];
-                    memory[25] = crc[2];
-
-                    LibreNfcUtils.unlock(handle);
-
-                    LibreNfcUtils.writeMemory(handle, memory);
-
-                    LibreNfcUtils.lock(handle);
-
-                    memory = LibreNfcUtils.readMemory(handle);
-
-                    if (memory.length == 0) {
-                        return;
-                    }
-                    break;
-
-                case ACTIVATE:
-                    byte[] activateCmd = new byte[]
-                            {
-                                    (byte) 0x02,
-                                    (byte) 0xA0,
-                                    (byte) 0x07,
-                                    (byte) 0XC2,
-                                    (byte) 0xAD,
-                                    (byte) 0x75,
-                                    (byte) 0x21
-                            };
-
-                    sendCmd(handle, activateCmd);
-                    break;
-                case LOAD_DUMP:
-                    StringBuilder text = new StringBuilder();
-
-                    File file = getFile();
-
-                    try {
-                        BufferedReader br = new BufferedReader(new FileReader(file));
-                        String line;
-
-                        while ((line = br.readLine()) != null) {
-                            text.append(line);
-                            text.append('\n');
-                        }
-                        br.close();
-                    } catch (IOException e) {
-                        vibrate();
-
-                        Toast.makeText(this, "Couldn't read the memory dump, is the file there?", Toast.LENGTH_SHORT).show();
-
-                        e.printStackTrace();
-                        return;
-                    }
-
-                    byte[] newMemory = hexStrToBytes(text.toString());
-
-
-                    if (newMemory == null) {
-                        vibrate();
-                        new AlertDialog.Builder(this)
-                                .setTitle("Memory load failed!")
-                                .setMessage("The memory dump length was not the expected one! Check your memory_dump.txt")
-                                .setPositiveButton(android.R.string.ok, null)
-                                .show();
-
-                        return;
-                    }
-
-                    memory = newMemory;
-
-                    LibreNfcUtils.unlock(handle);
-
-                    LibreNfcUtils.writeMemory(handle, memory);
-
-                    LibreNfcUtils.lock(handle);
-
-
-            }
-
-
-            // Regular scan stuff
-            float age = 256 * (memory[317] & 0xFF) + (memory[316] & 0xFF);
-            int region = memory[323];
-            int status = memory[4];
-
-            String statusString;
-
-            switch (status) {
-                case 1:
-                    statusString = "New (not activated)";
-                    break;
-                case 2:
-                    statusString = "In warmup";
-                    break;
-                case 3:
-                    statusString = "Active";
-                    break;
-                case 5:
-                    statusString = "Expired";
-                    break;
-                case 6:
-                    statusString = "Error";
-                    break;
-                default:
-                    statusString = "Unknown!";
-                    break;
-            }
-
-            System.out.println(bytesToHexStr(memory));
-            String id = bytesToHexStr(receivedId);
-
-            String uid = bytesToHexStr(receivedUid);
-
-            int trendIndex = memory[26];
-
-            int index = trendIndex - 1;
-            if (index < 0)
-                index += 16;
-
-            float temp = (256 * memory[index * 6 + 32] + memory[index * 6 + 31]) & 0x3fff;
-
-            // https://type1tennis.blogspot.com/2017/09/libre-other-bytes-well-some-of-them-at.html
-            double tempCelsius = Math.round((temp * 0.0027689 + 9.53) * 100.0) / 100.0;
-
-            idView.setText(getString(R.string.libreid, id));
-            uidView.setText(getString(R.string.uid, uid));
-            typeView.setText(getString(R.string.type, libreType));
-            ageView.setText(getString(R.string.age, age / 1440));
-            tempView.setText(getString(R.string.temp, tempCelsius));
-            regionView.setText(getString(R.string.region, region));
-            statusView.setText(getString(R.string.status, status, statusString));
-
-            Toast.makeText(this, "Scanned Successfully", Toast.LENGTH_SHORT).show();
-
-            vibrate();
-        }
-
-    }
-
-    private void vibrate() {
-        Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            v.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE));
-        } else {
-            v.vibrate(500);
-        }
-    }
-
-
 }
